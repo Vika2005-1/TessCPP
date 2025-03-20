@@ -104,7 +104,6 @@ rational rational::reverse() const {
     return rational(denominator, numerator);
 }
 
-
 rational rational::div(const rational& b) const {
     rational c = b.reverse();
     return mul(c);
@@ -134,6 +133,7 @@ public:
     Matrix operator+(const Matrix& d) const;
     Matrix operator-(const Matrix& d) const;
     Matrix operator*(const Matrix& d) const;
+    Matrix operator/(const Matrix& d) const;
     void set_data(const vector<vector<rational>>& values);
 private:
     int rows;
@@ -200,22 +200,36 @@ Matrix Matrix::operator-(const Matrix& d) const
     return res;
 }
 
-Matrix Matrix::operator*(const Matrix& d) const
-{
-    if (rows != d.rows || cols != d.cols)
-    {
-        throw invalid_argument("Matrices must have the same dimensions to be added.");
+Matrix Matrix:: operator*(const Matrix& other) const {
+    if (cols != other.rows) {
+        throw invalid_argument("Invalid matrices dimensions for multiplication");
     }
-    Matrix res(rows, cols);
-    for (int i = 0; i < rows; i++)
-    {
-        for (int j = 0; j < cols; j++)
-        {
-            res.data[i][j] = data[i][j].mul(d.data[i][j]);
+    Matrix result(rows, other.cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < other.cols; j++) {
+            result.data[i][j] = rational(0, 1);
+            for (int k = 0; k < cols; k++) {
+                result.data[i][j] = result.data[i][j] + (data[i][k] * other.data[k][j]);
+            }
         }
-
     }
-    return res;
+    return result;
+}
+
+Matrix Matrix:: operator/(const Matrix& other) const {
+    if (cols != other.rows) {
+        throw invalid_argument("Invalid matrices dimensions for multiplication");
+    }
+    Matrix result(rows, other.cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < other.cols; j++) {
+            result.data[i][j] = rational(0, 1);
+            for (int k = 0; k < cols; k++) {
+                result.data[i][j] = result.data[i][j] + (data[i][k] * other.data[k][j]);
+            }
+        }
+    }
+    return result;
 }
 
 void Matrix::set_data(const vector<vector<rational>>& values) {
@@ -230,10 +244,11 @@ int main() {
         rational a(1, 2);
         rational b(1, 4);
         Matrix c(2, 2);
-
+        rational v(1, 3);
+        rational w(2, 5);
         vector<vector<rational>> values = {
             {a, b},
-            {a, b}
+            {w, v}
         };
         c.set_data(values); // Установка данных
         c.show_matrix();
@@ -253,7 +268,7 @@ int main() {
         Matrix f3 = c * d;
         cout << "Proizvedenie: ";
         f3.show_matrix();
-
+        cout << endl;
     }
     catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;
